@@ -1,0 +1,9 @@
+# Keep Unix line endings everywhere (zsh breaks on CRLF;
+# PowerShell 7 and Windows nvim handle LF fine).
+* text=auto eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.ttf binary
+*.otf binary

@@ -1,0 +1,7 @@
+[mgr]
+prepend_keymap = [
+    { on = "H", run = "hidden toggle", desc = "Toggle hidden files" },
+    { on = "<C-UP>", run = "seek -5", desc = "Scroll preview down" },
+    { on = "<C-DOWN>", run = "seek 5", desc = "Scroll preview down" },
+    { on = "<Enter>", run = ["open", "quit"], desc = "Open selected files" },
+]

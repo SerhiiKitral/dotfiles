@@ -1,0 +1,28 @@
+# Installed by install.sh with apt (one per line, # for comments).
+# Tools that are missing or outdated in apt (nvim, node, .NET, yazi, fzf,
+# zoxide, oh-my-posh, eza on older Ubuntu) are downloaded by install.sh instead.
+
+# Shell and basics
+zsh
+git
+curl
+wget
+unzip
+xz-utils
+file
+
+# Compilers: treesitter parsers and native plugin builds
+build-essential
+
+# Search tools used by the snacks picker and rfgrep
+ripgrep
+fd-find
+bat
+
+# Python: Mason installs ruff, debugpy, clang-format and xmlformatter into venvs
+python3
+python3-venv
+python3-pip
+
+# .NET runtime dependency (roslyn, csharpier, netcoredbg)
+libicu-dev

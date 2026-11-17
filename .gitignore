@@ -1,0 +1,15 @@
+# Install logs
+logs/
+
+# Machine-specific overrides
+pwsh/profile.local.ps1
+*.local
+
+# Backups and editor leftovers
+*.bak
+*.swp
+*~
+.DS_Store
+
+# Test scratch space
+tests/.tmp/

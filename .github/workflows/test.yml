@@ -1,0 +1,36 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install zsh and shellcheck
+        run: sudo apt-get update && sudo apt-get install -y zsh shellcheck
+      - name: Run all suites (bash, zsh, PowerShell)
+        run: ./tests/run-tests.sh
+      - name: Upload error logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-logs
+          path: logs/
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run PowerShell suite (real junctions)
+        shell: pwsh
+        run: ./tests/run-tests.ps1
+      - name: Upload error logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-logs
+          path: logs/

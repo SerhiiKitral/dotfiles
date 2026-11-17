@@ -1,0 +1,25 @@
+# Installed by install.ps1 with scoop: one "bucket/app" per line, # for comments.
+# Buckets are added automatically. Fonts are installed by hand (README, Step 9).
+
+# Shell and terminal tools
+main/git
+main/pwsh
+main/fzf
+main/zoxide
+main/bat
+main/eza
+main/yazi
+main/oh-my-posh
+main/file
+main/7zip
+main/jq
+
+# Neovim and what your config needs
+main/neovim
+main/ripgrep
+main/fd
+main/mingw        # gcc: compiles treesitter parsers
+main/nodejs-lts   # Mason: basedpyright, json-lsp
+main/python       # Mason: ruff, debugpy, clang-format, xmlformatter
+main/dotnet-sdk   # Mason: roslyn, csharpier; netcoredbg debugging
+
