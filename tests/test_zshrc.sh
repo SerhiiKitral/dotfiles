@@ -27,10 +27,13 @@ setup_zsh_sandbox() {
 }
 
 # zsh_run 'commands'  -> interactive zsh in the sandbox; sets OUT, ERR, RC
+# --no-globalrcs: skip the distro's /etc/zshrc etc. Those files differ per distro
+# (Fedora's runs /etc/profile.d scripts) and would fail on the sandbox's tiny PATH;
+# the tests are about this repo's .zshrc, not the system's files.
 zsh_run() {
   local errfile="$SANDBOX/stderr"
   OUT="$(env -i HOME="$SB_HOME" PATH="$SANDBOX/bin" TERM=xterm-256color \
-    "$ZSH_BIN" -i -c "$1" 2>"$errfile" </dev/null)"
+    "$ZSH_BIN" --no-globalrcs -i -c "$1" 2>"$errfile" </dev/null)"
   RC=$?
   ERR="$(cat "$errfile")"
 }
@@ -104,7 +107,7 @@ test_case "Ctrl+Backspace deletes one path segment"
 # Drive a real interactive zsh through a pseudo-terminal
 widget_out="$(SB_HOME="$SB_HOME" SBIN="$SANDBOX/bin" ZBIN="$ZSH_BIN" timeout 20 "$ZSH_BIN" -f -c '
   zmodload zsh/zpty || exit 3
-  zpty t env -i HOME="$SB_HOME" PATH="$SBIN" TERM=dumb "$ZBIN" -i
+  zpty t env -i HOME="$SB_HOME" PATH="$SBIN" TERM=dumb "$ZBIN" --no-globalrcs -i
   sleep 1
   zpty -w -n t "print -r -- RESULT:/mnt/c/Users/User1/file.txt"
   zpty -w -n t $'"'"'\x08\x08\r'"'"'      # Ctrl+Backspace twice, then Enter
