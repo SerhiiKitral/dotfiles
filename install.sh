@@ -189,16 +189,20 @@ install_yazi() {
   run "install yazi binaries" install -m 755 "$dir/$name/yazi" "$dir/$name/ya" "$BIN_DIR/"
 }
 
+# eza: the aliases use --no-symlinks, added in eza 0.18.20. Ubuntu's apt
+# package is older, so the release binary goes to ~/.local/bin (first on PATH).
 install_eza() {
-  if have eza; then log "  ok eza"; return; fi
-  if have apt-cache && apt-cache show eza >/dev/null 2>&1; then
-    run "apt install eza" $SUDO env DEBIAN_FRONTEND=noninteractive apt-get install -y eza && return
+  if have eza; then
+    local v; v="$(eza --version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | tr -d v)"
+    if version_ge "$v" "0.18.20"; then log "  ok eza $v"; return; fi
+    warn "eza ${v:-?} is too old for --no-symlinks, installing the latest release to $BIN_DIR"
   fi
   [[ $ARCH == unknown ]] && { err "eza: unsupported architecture"; return 1; }
   (( DRY_RUN )) && { log "[dry-run] install eza"; return; }
   local tgz; tgz="$(fetch "https://github.com/eza-community/eza/releases/latest/download/eza_$ARCH-unknown-linux-gnu.tar.gz")" || return 1
   mkdir -p "$BIN_DIR"
-  run "extract eza" tar -xzf "$tgz" -C "$BIN_DIR"
+  run "extract eza" tar -xzf "$tgz" -C "$BIN_DIR" || return 1
+  hash -r
 }
 
 # Node.js: Mason installs basedpyright and json-lsp with npm
@@ -314,6 +318,18 @@ EOF
   log "  created $file (machine-specific settings)"
 }
 
+# Ubuntu/Debian's /etc/zsh/zshrc runs its own compinit before ~/.zshrc: that
+# doubles startup work and asks a y/n question if a completion dir is insecure.
+# This line (read from ~/.zshenv, before /etc/zsh/zshrc) turns it off.
+ensure_zshenv() {
+  local file="$TARGET_HOME/.zshenv" line="skip_global_compinit=1"
+  if [[ -f $file ]] && grep -qx "$line" "$file"; then log "  ok $file"; return 0; fi
+  (( DRY_RUN )) && { log "[dry-run] add $line to $file"; return 0; }
+  printf '\n# Added by dotfiles install.sh: ~/.zshrc runs compinit itself\n%s\n' "$line" >> "$file" \
+    || { err "cannot write $file"; return 1; }
+  log "  added $line to $file"
+}
+
 link_configs() {
   section "Config links"
   link "$DOTFILES_ROOT/zsh/.zshrc" "$TARGET_HOME/.zshrc"
@@ -321,6 +337,7 @@ link_configs() {
   link "$DOTFILES_ROOT/yazi"       "$CONFIG_DIR/yazi"
   link "$DOTFILES_ROOT/ohmyposh"   "$CONFIG_DIR/ohmyposh"
   create_local_template
+  ensure_zshenv
 }
 
 # ------------------------------------------------------------

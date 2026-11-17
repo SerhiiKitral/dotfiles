@@ -27,6 +27,9 @@ fi
 printf '\n'
 if (( ${#failed[@]} )); then
   printf '\033[31mFailed suites: %s\033[0m\nDetails: %s\n' "${failed[*]}" "$TEST_ERROR_LOG"
+  if [[ -n ${CI:-} && -f $TEST_ERROR_LOG ]]; then
+    printf '\n----- %s -----\n' "$TEST_ERROR_LOG"; cat "$TEST_ERROR_LOG"
+  fi
   exit 1
 fi
 printf '\033[32mAll suites passed.\033[0m\n'

@@ -70,11 +70,16 @@ fi
 (( _have_zinit )) && zinit light zsh-users/zsh-completions
 
 # compinit: full security check at most once a day, fast path otherwise
-autoload -Uz compinit
+autoload -Uz compinit compaudit
 _zcompdump="${ZDOTDIR:-$HOME}/.zcompdump"
 _zcompdump_old=( $_zcompdump(N.mh+24) )
 if [[ ! -f $_zcompdump ]] || (( ${#_zcompdump_old} )); then
-  compinit
+  # -i: skip completion dirs that other users can write to instead of stopping
+  # startup with a y/n question (happens with some package managers and on CI)
+  _insecure=( ${(f)"$(compaudit 2>/dev/null)"} )
+  (( ${#_insecure} )) && _dot_log "compinit: ignored insecure completion dirs: ${_insecure[*]} (fix: chmod g-w,o-w <dir>)"
+  unset _insecure
+  compinit -i
 else
   compinit -C
 fi

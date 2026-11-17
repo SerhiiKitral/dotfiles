@@ -24,6 +24,12 @@ else
 fi
 
 # ------------------------------------------------------------
+test_case "tool version requirements"
+# The zsh aliases use eza --no-symlinks (eza 0.18.20+); Ubuntu's apt eza is older
+assert_true "install_eza requires eza 0.18.20+" grep -q 'version_ge "$v" "0.18.20"' "$REPO_ROOT/install.sh"
+assert_true "install_eza does not settle for apt's eza" bash -c "! sed -n '/^install_eza()/,/^}/p' '$REPO_ROOT/install.sh' | grep -q 'apt-get install'"
+
+# ------------------------------------------------------------
 test_case "fresh install (--links-only)"
 make_sandbox
 sb_install --links-only
@@ -33,6 +39,7 @@ assert_link "$SB_HOME/.config/nvim"      "$SB_REPO/nvim"       "~/.config/nvim l
 assert_link "$SB_HOME/.config/yazi"      "$SB_REPO/yazi"       "~/.config/yazi linked"
 assert_link "$SB_HOME/.config/ohmyposh"  "$SB_REPO/ohmyposh"   "~/.config/ohmyposh linked"
 assert_true "~/.zshrc.local template created" test -f "$SB_HOME/.zshrc.local"
+assert_true "~/.zshenv skips the system compinit" grep -qx "skip_global_compinit=1" "$SB_HOME/.zshenv"
 assert_eq "" "$(error_logs)" "no error log written"
 assert_true "full log written" bash -c "compgen -G \"$SB_LOGS/install-*.log\" >/dev/null"
 
@@ -44,6 +51,7 @@ assert_eq 0 "$RC" "exits 0"
 assert_true "reports existing links as ok" grep -q "ok $SB_HOME/.zshrc" <<<"$OUT"
 assert_false "no backup directory created" test -d "$SB_HOME/.dotfiles-backup"
 assert_link "$SB_HOME/.zshrc" "$SB_REPO/zsh/.zshrc" "link unchanged"
+assert_eq 1 "$(grep -cx "skip_global_compinit=1" "$SB_HOME/.zshenv")" "~/.zshenv line not duplicated"
 cleanup_sandbox
 
 # ------------------------------------------------------------

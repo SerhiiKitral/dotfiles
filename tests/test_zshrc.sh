@@ -20,7 +20,9 @@ setup_zsh_sandbox() {
   mkdir -p "$SB_HOME/.local/share/zinit/zinit.git" "$SANDBOX/bin"
   printf 'zinit() { : }\n' > "$SB_HOME/.local/share/zinit/zinit.git/zinit.zsh"
   local tool
-  for tool in mkdir tail rm cat mv cp chmod; do ln -s "$(command -v "$tool")" "$SANDBOX/bin/$tool"; done
+  for tool in mkdir tail rm cat mv cp chmod grep getent; do
+    command -v "$tool" >/dev/null && ln -s "$(command -v "$tool")" "$SANDBOX/bin/$tool"
+  done
   ZLOG="$SB_HOME/.local/state/dotfiles/zsh-errors.log"
 }
 
@@ -45,6 +47,19 @@ assert_eq 0 "$RC" "exits 0"
 assert_eq "" "$ERR" "nothing printed to stderr"
 assert_true "DOTFILES points at the repo" grep -qx "DOTFILES=$SB_REPO" <<<"$OUT"
 assert_false "no desktop prompt outside WSL" grep -q "First run" <<<"$OUT"
+
+# ------------------------------------------------------------
+test_case "insecure completion directory does not stop startup"
+# Group/world-writable dirs in fpath make compinit ask y/n (and abort without a terminal)
+mkdir -p "$SANDBOX/insecure-completions" && chmod 777 "$SANDBOX/insecure-completions"
+printf 'fpath=(%s $fpath)\n' "$SANDBOX/insecure-completions" >> "$SB_HOME/.zshenv"
+rm -f "$SB_HOME/.zcompdump"*
+zsh_run 'print -r -- started'
+assert_eq 0 "$RC" "exits 0"
+assert_eq "" "$ERR" "no prompt or error on stderr"
+assert_true "shell finished starting" grep -qx "started" <<<"$OUT"
+assert_contains "$ZLOG" "insecure completion dirs" "insecure dir is logged"
+sed -i '/insecure-completions/d' "$SB_HOME/.zshenv"
 
 # ------------------------------------------------------------
 test_case "missing tools are logged, not shown"
