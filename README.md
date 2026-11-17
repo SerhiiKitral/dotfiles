@@ -9,6 +9,7 @@ My shell and editor setup for **WSL (zsh)** and **Windows (PowerShell 7)**: one 
 | `nvim/` | Neovim config | `~/.config/nvim` | `%LOCALAPPDATA%\nvim` |
 | `yazi/` | yazi config | `~/.config/yazi` | `%APPDATA%\yazi\config` |
 | `ohmyposh/` | prompt theme (shared) | `~/.config/ohmyposh` | read from the repo |
+| `fonts/JetBrainsMonoNerdFontMono/` | JetBrainsMono Nerd Font Mono + its license | installed by hand (Step 9) | installed by hand (Step 9) |
 | `packages/` | tool lists for the installers | | |
 | `tests/` | test suites | | |
 
@@ -160,14 +161,14 @@ cd $HOME\dotfiles
 
 This installs scoop and everything in `packages\scoop.txt` (PowerShell 7, nvim, gcc, Node, Python, .NET SDK, fzf, ripgrep, fd, bat, eza, yazi, zoxide, oh-my-posh), the PSFzf module, links nvim and yazi configs, points your PowerShell 7 profile at the repo, and installs nvim plugins, Mason tools and parsers.
 
-### Step 9: Install a Nerd Font (manual, once)
+### Step 9: Install the font (manual, once)
 
-Your prompt, yazi, eza and nvim use icons that only Nerd Fonts contain. Fonts are installed by hand, not by the scripts.
+Your prompt, yazi, eza and nvim use icons that only Nerd Fonts contain. The font lives in this repo, in `fonts/JetBrainsMonoNerdFontMono/` (all weights plus its license, `OFL.txt`), and is installed by hand, not by the scripts.
 
-1. Go to <https://www.nerdfonts.com/font-downloads> and download **JetBrainsMono Nerd Font** (or any Nerd Font you like). You get a zip.
-2. Unzip it, select all the `.ttf` files, right-click and choose **Install** (or **Install for all users**).
+1. In Explorer, open `fonts\JetBrainsMonoNerdFontMono` in your Windows copy of the repo (`$HOME\dotfiles\fonts\JetBrainsMonoNerdFontMono`).
+2. Select all the `.ttf` files, right-click and choose **Install**. If Windows says the font is already installed, you're done; skip replacing it (replacing while Windows Terminal is open creates duplicate `_0` files).
 3. In **Windows Terminal → Settings**:
-   - **Defaults → Appearance → Font face:** `JetBrainsMono Nerd Font`
+   - **Defaults → Appearance → Font face:** `JetBrainsMono Nerd Font Mono`
    - **Startup → Default profile:** `PowerShell` (the 7.x one, not "Windows PowerShell")
    - Click **Save**.
 
@@ -176,8 +177,8 @@ One install covers both WSL and PowerShell, because Windows Terminal draws the t
 If you also run a Linux terminal inside WSL (for example kitty through WSLg), install the font there as well:
 
 ```bash
-mkdir -p ~/.local/share/fonts
-unzip ~/Downloads/JetBrainsMono.zip -d ~/.local/share/fonts/JetBrainsMono   # path to the downloaded zip
+mkdir -p ~/.local/share/fonts/JetBrainsMonoNerdFontMono
+cp ~/dotfiles/fonts/JetBrainsMonoNerdFontMono/*.ttf ~/.local/share/fonts/JetBrainsMonoNerdFontMono/
 fc-cache -f
 ```
 
