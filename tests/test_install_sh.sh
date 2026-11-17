@@ -30,6 +30,19 @@ assert_true "install_eza requires eza 0.18.20+" grep -q 'version_ge "$v" "0.18.2
 assert_true "install_eza does not settle for apt's eza" bash -c "! sed -n '/^install_eza()/,/^}/p' '$REPO_ROOT/install.sh' | grep -q 'apt-get install'"
 
 # ------------------------------------------------------------
+test_case "fonts in the repo come with their license"
+# Open font licenses (like JetBrains Mono's OFL) require the license next to the font when shared
+for dir in "$REPO_ROOT"/fonts/*/; do
+  [[ -d $dir ]] || continue
+  name="$(basename "$dir")"
+  assert_true "fonts/$name has a license file" bash -c "ls '$dir' | grep -qiE '^(OFL|LICEN[CS]E)'"
+done
+for ofl in "$REPO_ROOT"/fonts/*/OFL.txt; do
+  [[ -f $ofl ]] || continue
+  assert_true "$(basename "$(dirname "$ofl")")/OFL.txt is the SIL Open Font License" grep -q "SIL Open Font License" "$ofl"
+done
+
+# ------------------------------------------------------------
 test_case "fresh install (--links-only)"
 make_sandbox
 sb_install --links-only
