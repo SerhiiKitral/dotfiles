@@ -65,6 +65,18 @@ out="$(nvim_lua 'local p = require("utils.platform"); p.is_win = true; io.stdout
 assert_true "Windows debugpy path" grep -q '/mason/packages/debugpy/venv/Scripts/python.exe$' <<<"$out"
 
 # ------------------------------------------------------------
+test_case "Windows shell settings (simulated Windows)"
+# Pretend to be Windows, then load utils.platform and read the shell options it set
+win_lua='local real = vim.fn.has; vim.fn.has = function(f) if f == "win32" then return 1 end if f == "wsl" then return 0 end return real(f) end; require("utils.platform")'
+out="$(nvim_lua "$win_lua; io.stdout:write(vim.o.shell)")"
+assert_eq "powershell" "$out" "uses Windows PowerShell (5.1), not pwsh"
+out="$(nvim_lua "$win_lua; io.stdout:write(vim.o.shellcmdflag)")"
+assert_true "starts it without a profile" grep -q -- "-NoProfile" <<<"$out"
+assert_false "no PowerShell-7-only commands (Remove-Alias, \$PSStyle)" grep -qE 'Remove-Alias|PSStyle' <<<"$out"
+out="$(nvim_lua "$win_lua; io.stdout:write(vim.o.shellpipe)")"
+assert_false "shellpipe avoids tee (UTF-16 in 5.1)" grep -qi 'tee' <<<"$out"
+
+# ------------------------------------------------------------
 test_case "C# dll finder works with Windows-style paths"
 # Same matching logic as lua/plugins/dap.lua (win = true simulates Windows normalization)
 out="$(nvim_lua '

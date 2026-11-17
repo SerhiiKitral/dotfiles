@@ -42,7 +42,7 @@ chmod +x install.sh tests/*.sh
 | File | Change | Why |
 |---|---|---|
 | `init.lua` | first line: `require("utils.platform")` | loads the OS-specific settings before everything else |
-| `lua/utils/platform.lua` | **new** | Windows: pwsh as nvim's shell, `CC=gcc` for compiling parsers. WSL: clipboard via win32yank. Both: Mason's `bin/` on PATH early, and Windows/Linux paths into Mason packages |
+| `lua/utils/platform.lua` | **new** | Windows: Windows PowerShell (`powershell.exe`, 5.1) as nvim's shell, `CC=gcc` for compiling parsers. WSL: clipboard via win32yank. Both: Mason's `bin/` on PATH early, and Windows/Linux paths into Mason packages |
 | `lua/plugins/dap.lua` | netcoredbg and debugpy paths go through `utils.platform`; the C# dll finder normalizes paths | on Windows, Mason has `netcoredbg.exe` and `venv\Scripts\python.exe`, and paths use backslashes |
 | `lua/plugins/treesitter.lua` | waits for Mason before compiling parsers; adds `:TSInstallSync` | on a fresh machine the tree-sitter CLI (installed by Mason) isn't there yet, so every parser failed on first launch |
 
@@ -154,10 +154,13 @@ Open **Windows PowerShell** (the built-in one is fine) as a **normal user, not a
 winget install --id Git.Git -e
 # close and reopen PowerShell so git is on PATH
 git clone https://github.com/<you>/dotfiles.git $HOME\dotfiles
-Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 cd $HOME\dotfiles
-.\install.ps1
+powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
+
+`-ExecutionPolicy Bypass` lets the installer run just this once; it doesn't change any setting.
+
+**Windows PowerShell 5.1 stays exactly as it is.** The installer doesn't touch its profile or its execution policy, so it keeps its default prompt and behavior; nvim also uses it for `:!` commands and its terminal. Your setup (oh-my-posh, aliases, key bindings) loads only in **PowerShell 7**, which you start with `pwsh` or pick in Windows Terminal.
 
 This installs scoop and everything in `packages\scoop.txt` (PowerShell 7, nvim, gcc, Node, Python, .NET SDK, fzf, ripgrep, fd, bat, eza, yazi, zoxide, oh-my-posh), the PSFzf module, links nvim and yazi configs, points your PowerShell 7 profile at the repo, and installs nvim plugins, Mason tools and parsers.
 
@@ -169,7 +172,7 @@ Your prompt, yazi, eza and nvim use icons that only Nerd Fonts contain. The font
 2. Select all the `.ttf` files, right-click and choose **Install**. If Windows says the font is already installed, you're done; skip replacing it (replacing while Windows Terminal is open creates duplicate `_0` files).
 3. In **Windows Terminal → Settings**:
    - **Defaults → Appearance → Font face:** `JetBrainsMono Nerd Font Mono`
-   - **Startup → Default profile:** `PowerShell` (the 7.x one, not "Windows PowerShell")
+   - Optional, **Startup → Default profile:** `PowerShell` (the 7.x one) if you want new tabs to open with your setup. Leave it as is to keep Windows PowerShell as the default.
    - Click **Save**.
 
 One install covers both WSL and PowerShell, because Windows Terminal draws the text for both. Open a new tab: you should see your oh-my-posh prompt with icons.
@@ -289,7 +292,7 @@ Both installers keep going after an error, finish everything else, print the err
 
 **Common issues**
 
-- *"running scripts is disabled on this system"*: run `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`.
+- *"running scripts is disabled on this system"* in PowerShell 7: run `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` **in PowerShell 7** (`pwsh`). PowerShell 7 keeps its own setting, so this doesn't change Windows PowerShell 5.1.
 - *A scoop package fails*: names occasionally move between buckets. Search with `scoop search <name>` and fix the line in `packages\scoop.txt`.
 - *A download fails in `install.sh`*: release file names occasionally change upstream. The error log shows the URL; update it in `install.sh`.
 - *Ctrl+Backspace does nothing in zsh*: press Ctrl+V then Ctrl+Backspace at the prompt. It should print `^H`; if it prints something else, bind that sequence in `zsh/.zshrc`.

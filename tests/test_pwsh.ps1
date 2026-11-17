@@ -26,6 +26,12 @@ Test-Case 'fonts are installed by hand, not by the installer'
 Assert-True (-not (Select-String -Path (Join-Path $RepoRoot 'packages/scoop.txt') -Pattern '^\s*nerd-fonts/' -Quiet)) 'scoop.txt has no font packages'
 Assert-True (-not (Select-String -Path (Join-Path $RepoRoot 'install.ps1') -Pattern 'SkipFonts' -Quiet)) 'install.ps1 has no font option'
 
+Test-Case 'install.ps1 leaves Windows PowerShell 5.1 alone'
+$installText = Get-Content (Join-Path $RepoRoot 'install.ps1') -Raw
+Assert-True ($installText -notmatch 'WindowsPowerShell') 'never writes the Windows PowerShell profile folder'
+Assert-True ($installText -notmatch '(?m)^\s*Set-ExecutionPolicy') 'does not change the execution policy'
+Assert-True ($installText -match "'PowerShell\\Microsoft\.PowerShell_profile\.ps1'") 'profile stub goes to the PowerShell 7 profile'
+
 Test-Case 'Windows Sandbox configuration'
 $wsb = Join-Path ([IO.Path]::GetTempPath()) ("dotfiles-test-" + [guid]::NewGuid().ToString('N').Substring(0, 6) + '.wsb')
 & (Join-Path $RepoRoot 'sandbox/Start-WindowsSandbox.ps1') -OutFile $wsb -NoLaunch -MemoryMB 4096 6>$null

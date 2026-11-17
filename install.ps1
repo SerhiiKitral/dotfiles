@@ -311,19 +311,8 @@ function Set-ConfigLinks {
 # ------------------------------------------------------------
 function Invoke-PostSetup {
     Write-Section 'Post-setup'
-    if ($OnWindows) {
-        $policy = Get-ExecutionPolicy -Scope CurrentUser
-        if ($policy -in @('Undefined', 'Restricted', 'AllSigned')) {
-            if ($DryRun) { Write-Log '[dry-run] Set-ExecutionPolicy RemoteSigned -Scope CurrentUser' }
-            else {
-                try {
-                    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction Stop
-                    Write-Log '  execution policy set to RemoteSigned (CurrentUser)'
-                } catch { Write-Err "Set-ExecutionPolicy failed: $($_.Exception.Message)" }
-            }
-        } else { Write-Log "  ok execution policy ($policy)" }
-    }
-
+    # Windows PowerShell 5.1 is left alone: no profile, no execution policy change.
+    # PowerShell 7 runs profile scripts by default (its default policy is RemoteSigned).
     $nvimInit = Join-Path (Join-Path $Root 'nvim') 'init.lua'
     if ((Test-Command 'nvim') -and (Test-Path $nvimInit)) {
         # Order matters: Mason installs the tree-sitter CLI that compiles the parsers
@@ -336,7 +325,8 @@ function Invoke-PostSetup {
     Write-Log ''
     Write-Log '  Manual steps (once):'
     Write-Log '  - Install a Nerd Font and select it in Windows Terminal (README, Step 9)'
-    Write-Log '  - Windows Terminal > Settings > Startup > Default profile: PowerShell (the 7.x one)'
+    Write-Log '  - Optional: Windows Terminal > Settings > Startup > Default profile: PowerShell (the 7.x one)'
+    Write-Log '  Windows PowerShell 5.1 is unchanged; your setup loads only in PowerShell 7 (pwsh).'
 }
 
 # ------------------------------------------------------------

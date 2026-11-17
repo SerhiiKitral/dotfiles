@@ -22,19 +22,19 @@ function M.mason_exe(package, unix_path, windows_path)
 end
 
 if M.is_win then
-	-- PowerShell 7 for :!, :terminal and plugins that shell out
-	-- (settings from :help shell-powershell)
-	if vim.fn.executable("pwsh") == 1 then
-		vim.o.shell = "pwsh"
-		vim.o.shellcmdflag = "-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command "
-			.. "[Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new();"
-			.. "$PSDefaultParameterValues['Out-File:Encoding']='utf8';"
-			.. "Remove-Alias -Force -ErrorAction SilentlyContinue tee;"
-		vim.o.shellredir = '2>&1 | %%{ "$_" } | Out-File %s; exit $LastExitCode'
-		vim.o.shellpipe = '2>&1 | %%{ "$_" } | tee %s; exit $LastExitCode'
-		vim.o.shellquote = ""
-		vim.o.shellxquote = ""
-	end
+	-- Windows PowerShell (the built-in powershell.exe, 5.1) for :!, :terminal
+	-- and plugins that shell out. -NoProfile keeps :! commands fast and plain.
+	-- Based on :help shell-powershell, adjusted for 5.1: no Remove-Alias or
+	-- $PSStyle (PowerShell 7 only), and no tee (5.1's Tee-Object writes UTF-16,
+	-- which nvim can't read as an error file), so :make output goes to the file only.
+	vim.o.shell = "powershell"
+	vim.o.shellcmdflag = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -Command "
+		.. "[Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new();"
+		.. "$PSDefaultParameterValues['Out-File:Encoding']='utf8';"
+	vim.o.shellredir = '2>&1 | %%{ "$_" } | Out-File %s; exit $LastExitCode'
+	vim.o.shellpipe = '2>&1 | %%{ "$_" } | Out-File %s; exit $LastExitCode'
+	vim.o.shellquote = ""
+	vim.o.shellxquote = ""
 
 	-- nvim-treesitter (main branch) compiles parsers with `tree-sitter build`,
 	-- which looks for MSVC by default; point it at MinGW's gcc instead
