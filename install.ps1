@@ -97,11 +97,13 @@ function Invoke-NativeTimeout {
         $quoted = $Arguments | ForEach-Object { if ($_ -match '\s') { '"' + $_ + '"' } else { $_ } }
         $proc = Start-Process -FilePath $Exe -ArgumentList $quoted -NoNewWindow -PassThru `
             -RedirectStandardOutput $outFile -RedirectStandardError $errFile -ErrorAction Stop
+        $null = $proc.Handle          # add: makes ExitCode available later
         if (-not $proc.WaitForExit($TimeoutSeconds * 1000)) {
             $proc.Kill()
             Write-Err "$Description timed out after $TimeoutSeconds s" ((Get-Content $outFile, $errFile -Raw) -join '')
             return $false
         }
+        $proc.WaitForExit()           
         $out = ((Get-Content $outFile, $errFile -Raw) -join '')
         if ($out) { Add-Content -Path $LogFile -Value $out.TrimEnd() }
         if ($proc.ExitCode -ne 0) { Write-Err "$Description failed (exit $($proc.ExitCode))" $out; return $false }
