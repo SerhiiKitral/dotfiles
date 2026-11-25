@@ -209,8 +209,8 @@ bindkey '^X^E' edit-command-line
 #  Aliases (only when the tool exists, otherwise logged)
 # ============================================================
 if (( $+commands[eza] )); then
-  alias ls='eza -1 --no-symlinks --color=auto --group-directories-first --sort=name'
-  alias la='eza -a -1 --no-symlinks --color=auto --group-directories-first --sort=name'
+  alias ls='eza -1 --color=auto --group-directories-first --sort=name'
+  alias la='eza -a -1 --color=auto --group-directories-first --sort=name'
 else
   _dot_log "eza not found: ls/la use the system ls"
   alias la='ls -A'
